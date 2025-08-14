@@ -52,13 +52,9 @@ class TestLoginUser:
         expected_message = "email or password are incorrect"
         correct_email = create_and_delete_user[0]["email"]
         correct_password = create_and_delete_user[0]["password"]
-        wrong_payloads = ApiClientMethods.get_wrong_login_payloads(correct_email, correct_password)
 
-        for payload in wrong_payloads:
-            response = ApiClientMethods.login_user(payload)
-            assert response.status_code == 401
-            assert response.json()["success"] == False
-            assert response.json()["message"] == expected_message
+        wrong_payloads = ApiClientMethods.get_wrong_login_payloads(correct_email, correct_password)
+        ApiClientMethods.assert_user_cannot_login_with_payloads(wrong_payloads, expected_message)
 
 class TestCreateOrder:
     @allure.title("Проверка создания заказа авторизированным пользователем с ингредиентами, без ингредиентов и с несуществующим ингредиентом")

@@ -42,6 +42,15 @@ class ApiClientMethods:
         ]
 
     @staticmethod
+    @allure.step("Проверяем возможность логина пользователя")
+    def assert_user_cannot_login_with_payloads(payloads, expected_message):
+        for payload in payloads:
+            response = ApiClientMethods.login_user(payload)
+            assert response.status_code == 401
+            assert response.json()["success"] is False
+            assert response.json()["message"] == expected_message
+
+    @staticmethod
     @allure.step("Получаем список доступных ингредиентов")
     def get_ingredients_info():
         return requests.get(Endpoints.GET_INGREDIENTS_INFO)
