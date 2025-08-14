@@ -2,7 +2,7 @@ import allure
 import pytest
 from data.data import DataForTests
 from helpers.api_client import ApiClientMethods
-from helpers.helpers import generate_random_register_data_for_user
+from helpers.helpers import generate_random_register_data_for_user, generate_random_ingredient_hash
 
 
 class TestApiCreateUser:
@@ -57,27 +57,55 @@ class TestLoginUser:
         ApiClientMethods.assert_user_cannot_login_with_payloads(wrong_payloads, expected_message)
 
 class TestCreateOrder:
-    @allure.title("Проверка создания заказа авторизированным пользователем с ингредиентами, без ингредиентов и с несуществующим ингредиентом")
-    @pytest.mark.parametrize("payload", DataForTests.CREATE_ORDER_WITH_VARIOUS_INGREDIENTS, ids=["with_ingredients", "empty_ingredients", "nonexistent_ingredients"])
-    def test_create_order_with_auth_various_ingredients(self, create_and_delete_user, payload):
+    @allure.title("Проверка создания заказа авторизированным пользователем и с ингредиентами")
+    def test_create_order_with_auth_and_with_ingredients_returns_200(self, create_and_delete_user):
         auth_token = create_and_delete_user[1]
-        response = ApiClientMethods.create_order(payload["ingredients"], auth_token)
+        ingredient = ApiClientMethods.get_random_ingredients()
+        response = ApiClientMethods.create_order(ingredient, auth_token)
 
-        assert response.status_code == payload["expected_status_code"]
-        if payload["expected_success"] is not None:
-            assert response.json()["success"] == payload["expected_success"]
+        assert response.status_code == 200
+        assert response.json()["success"] == True
 
-        if payload["expected_message"] is not None:
-            assert response.json()["message"] == payload["expected_message"]
+    @allure.title("Проверка создания заказа авторизированным пользователем и без ингредиентов")
+    def test_create_order_with_auth_and_without_ingredients_returns_400(self, create_and_delete_user):
+        auth_token = create_and_delete_user[1]
+        expected_message = "Ingredient ids must be provided"
+        ingredient = []
+        response = ApiClientMethods.create_order(ingredient, auth_token)
 
-    @allure.title("Проверка создания заказа с неавторизированным пользователем с ингредиентами, без ингредиентов и с несуществующим ингредиентом")
-    @pytest.mark.parametrize("payload",DataForTests.CREATE_ORDER_WITH_VARIOUS_INGREDIENTS, ids=["with_ingredients", "empty_ingredients", "nonexistent_ingredients"])
-    def test_create_order_without_auth_various_ingredients(self, payload):
-        response = ApiClientMethods.create_order(payload["ingredients"])
+        assert response.status_code == 400
+        assert response.json()["success"] == False
+        assert response.json()["message"] == expected_message
 
-        assert response.status_code == payload["expected_status_code"]
-        if payload["expected_success"] is not None:
-            assert response.json()["success"] == payload["expected_success"]
+    @allure.title("Проверка создания заказа авторизированным пользователем и с несуществующим ингредиентом")
+    def test_create_order_with_auth_and_with_nonexistent_ingredient_returns_500(self, create_and_delete_user):
+        auth_token = create_and_delete_user[1]
+        ingredient = generate_random_ingredient_hash()
+        response = ApiClientMethods.create_order(ingredient, auth_token)
 
-        if payload["expected_message"] is not None:
-            assert response.json()["message"] == payload["expected_message"]
+        assert response.status_code == 500
+
+    @allure.title("Проверка создания заказа с неавторизированным пользователем и с ингредиентами")
+    def test_create_order_without_auth_and_with_ingredients_returns_200(self):
+        ingredient = ApiClientMethods.get_random_ingredients()
+        response = ApiClientMethods.create_order(ingredient)
+
+        assert response.status_code == 200
+        assert response.json()["success"] == True
+
+    @allure.title("Проверка создания заказа с неавторизированным пользователем и без ингредиентов")
+    def test_create_order_without_auth_and_without_ingredients_returns_400(self):
+        expected_message = "Ingredient ids must be provided"
+        ingredient = []
+        response = ApiClientMethods.create_order(ingredient)
+
+        assert response.status_code == 400
+        assert response.json()["success"] == False
+        assert response.json()["message"] == expected_message
+
+    @allure.title("Проверка создания заказа с неавторизированным пользователем и с несуществующим ингредиентом")
+    def test_create_order_without_auth_and_with_nonexistent_ingredient_returns_500(self):
+        ingredient = generate_random_ingredient_hash()
+        response = ApiClientMethods.create_order(ingredient)
+
+        assert response.status_code == 500

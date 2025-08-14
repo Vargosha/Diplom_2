@@ -30,4 +30,4 @@ def delete_user_only():
     yield token
 
     if token["auth_token"]:
-        response = ApiClientMethods.delete_user(token["auth_token"])
+        ApiClientMethods.delete_user(token["auth_token"])

@@ -23,3 +23,8 @@ def generate_random_register_data_for_user():
 
 def generate_random_number(number):
     return random.randint(1,number)
+
+def generate_random_ingredient_hash():
+    fake = Faker('ru_RU')
+    ingredient = {"ingredients": fake.password(length=20)}
+    return ingredient
