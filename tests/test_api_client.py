@@ -10,11 +10,10 @@ class TestApiCreateUser:
     def test_create_user_with_valid_data_return_200(self, delete_user_only):
         create_payload = generate_random_register_data_for_user()[0]
         response = ApiClientMethods.create_user(create_payload)
+        delete_user_only["auth_token"] = ApiClientMethods.get_auth_token(response)
 
         assert response.status_code == 200
         assert response.json()["success"] == True
-
-        delete_user_only(response)
 
     @allure.title("Проверка невозможности создания дубликата пользователя")
     def test_cannot_create_duplicate_user_returns_403(self, create_and_delete_user):

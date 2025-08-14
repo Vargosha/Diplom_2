@@ -25,13 +25,9 @@ def create_user_only():
 
 @pytest.fixture()
 def delete_user_only():
-    auth_token = None
+    token = {"auth_token": None}
 
-    def get_auth_token_for_delete(response):
-        nonlocal auth_token
-        auth_token = ApiClientMethods.get_auth_token(response)
-        return auth_token
+    yield token
 
-    yield get_auth_token_for_delete
-
-    ApiClientMethods.delete_user(auth_token)
+    if token["auth_token"]:
+        response = ApiClientMethods.delete_user(token["auth_token"])
